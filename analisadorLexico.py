@@ -1,0 +1,102 @@
+import ply.lex as lex
+
+class AnalizadorLexico:
+    # TOKEN{ type, value, lineno, lexpos }
+    palavras_reservadas = {
+        'if': 'IF',
+        'else': 'ELSE',
+        'begin': 'BEGIN',
+        'end': 'END',
+        'const': 'CONST',
+        'integer': 'INTEGER',
+        'record': 'RECORD',
+        'of': 'OF',
+        'real': 'REAL',
+        'array': 'ARRAY',
+        'var': 'VAR',
+        'type': 'TYPE',
+        'function': 'FUNCTION',
+        'procedure': 'PROCEDURE',
+        'write': 'WRITE',
+        'read': 'READ',
+        'then': 'THEN',
+        'do': 'DO',
+
+        'id': 'ID' # Caso não seja uma palavra reservada
+    }
+
+    tokens = [
+        'OP_LOGICO',
+        'OP_MAT',
+        'NUMERO',
+        'STRING',
+        'CONST_VALOR',
+        'COMENTARIO',
+        'ATRIBUICAO',
+        'PONTOVIRGULA',
+        'DOISPONTOS',
+        'PONTO',
+        'COLCHETE_ESQ',
+        'COLCHETE_DIR',
+        'PARENTESIS_ESQ',
+        'PARENTESIS_DIR',
+        'VIRGULA',
+    ]
+    tokens.extend(palavras_reservadas.values())
+
+    t_NUMERO = r'[0-9]+(.[0-9]+)*'
+    t_STRING = r'\"[a-zA-Z0-9 ]*\"'
+    t_OP_MAT = r'[\+|\-|\*|\/]'
+    t_OP_LOGICO = r'[<|>|=|!]'
+
+    t_ATRIBUICAO = r'\:='
+    t_PONTOVIRGULA = r'\;'
+    t_DOISPONTOS = r'\:'
+    t_PONTO = r'\.'
+    t_VIRGULA = r'\,'
+    t_COLCHETE_ESQ = r'\['
+    t_COLCHETE_DIR = r'\]'
+    t_PARENTESIS_ESQ = r'\('
+    t_PARENTESIS_DIR = r'\)'
+
+
+    def t_ID(self, token: lex.LexToken): #Um identificador pode se confundir com uma palavra reservada
+        r'[a-zA-Z][a-zA-Z0-9]*'
+        token.type = self.palavras_reservadas.get(token.value,'ID')    # Checa palavras reservadas
+        return token
+
+    def t_newline(self,token: lex.LexToken):
+        r'\n+'
+        token.lexer.lineno += len(token.value)
+
+    def t_COMENTARIO(self, token: lex.LexToken):
+        r'\//.*'
+        pass
+
+    t_ignore  = ' \t'
+
+    def t_error(self, token: lex.LexToken):
+        print("\033[1;31;40m"+ 
+            f"Caracter ilegal '{token.value}' na linha {token.lexer.lineno}" 
+            + "\033[0m")
+        token.lexer.skip(1)
+
+    def __init__(self,) -> None:
+        self.lexer = lex.lex(module=self)
+        self.tokens_gerados = list()
+
+    
+    def tokenizar(self, programa: str) -> None:
+        self.lexer.input(programa)
+
+        while True:
+            token = self.lexer.token()
+            if not token:
+                break
+
+            self.tokens_gerados.append(token)
+
+    def printTokens(self,):
+        for token in self.tokens_gerados:
+            print(f"{token.type} {(15-len(token.type))*' '} linha: {token.lineno} {(3-len(str(token.lineno)))*' '} {token.value}")
+

@@ -1,0 +1,19 @@
+const   TAM = 10; 
+        MSG = "digite as notas do aluno"; 
+ 
+type    vetor = array [15] of integer; 
+        aluno = record  
+            nota1 : real; 
+            nota2 : real 
+        end; 
+
+var A, B, C, D : integer; 
+    E : vetor; 
+    F : aluno; 
+ 
+procedure lerDados  
+begin 
+    write MSG; 
+    read F.nota1; 
+    read F.nota2; 
+end
