@@ -1,5 +1,15 @@
-const   TAM = 10; 
-        MSG = "digite as notas do aluno"; 
+// Sou um comentario de uma linha
+
+/* Sou um comentario de varias linhas 
+eu apereço em varias linhas
+*/
+
+/*
+asdasdasd
+*/
+
+const   TAM == 10; 
+        MSG == "digite as notas do aluno"; 
  
 type    vetor = array [15] of integer; 
         aluno = record  
@@ -13,6 +23,11 @@ var A, B, C, D : integer;
  
 procedure lerDados  
 begin 
+    variavel := 20.0;
+    variavel := variavel/2.0;
+
+    a := 0.0
+
     write MSG; 
     read F.nota1; 
     read F.nota2; 
