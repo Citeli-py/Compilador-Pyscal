@@ -73,7 +73,8 @@ class AnalizadorLexico:
         pass
 
     def t_COMENTARIO_MULTILINHA(self, token: lex.LexToken) -> None:
-        r"\/(\*(?!\/)|[^*])*\/"
+        r"\/\*(\*(?!\/)|[^*])*\*\/"
+        token.lexer.lineno += token.value.count("\n") # Coreção do numero de linhas
         pass
 
     t_ignore  = ' \t'
