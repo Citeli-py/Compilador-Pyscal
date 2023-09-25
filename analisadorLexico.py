@@ -45,9 +45,9 @@ class AnalizadorLexico:
     tokens.extend(palavras_reservadas.values())
 
     t_NUMERO = r'[0-9]+(.[0-9]+)*'
-    t_STRING = r'\"[a-zA-Z0-9 ]*\"'
+    t_STRING = r'\".*\"'
     t_OP_MAT = r'[\+|\-|\*|\/]'
-    t_OP_LOGICO = r'[<|>|=|!]'
+    t_OP_LOGICO = r'[<|>|!|=]'
 
     t_ATRIBUICAO = r'\:='
     t_PONTOVIRGULA = r'\;'
@@ -59,25 +59,28 @@ class AnalizadorLexico:
     t_PARENTESIS_ESQ = r'\('
     t_PARENTESIS_DIR = r'\)'
 
-
-    def t_ID(self, token: lex.LexToken): #Um identificador pode se confundir com uma palavra reservada
+    def t_ID(self, token: lex.LexToken) -> lex.LexToken: #Um identificador pode se confundir com uma palavra reservada
         r'[a-zA-Z][a-zA-Z0-9]*'
         token.type = self.palavras_reservadas.get(token.value,'ID')    # Checa palavras reservadas
         return token
 
-    def t_newline(self,token: lex.LexToken):
+    def t_newline(self,token: lex.LexToken)-> None:
         r'\n+'
         token.lexer.lineno += len(token.value)
 
-    def t_COMENTARIO(self, token: lex.LexToken):
-        r'\//.*'
+    def t_COMENTARIO(self, token: lex.LexToken) -> None:
+        r'//.*'
+        pass
+
+    def t_COMENTARIO_MULTILINHA(self, token: lex.LexToken) -> None:
+        r"\/(\*(?!\/)|[^*])*\/"
         pass
 
     t_ignore  = ' \t'
 
-    def t_error(self, token: lex.LexToken):
+    def t_error(self, token: lex.LexToken) -> None:
         print("\033[1;31;40m"+ 
-            f"Caracter ilegal '{token.value}' na linha {token.lexer.lineno}" 
+            f"Caracter ilegal '{token.value[0]}' na linha {token.lexer.lineno}" 
             + "\033[0m")
         token.lexer.skip(1)
 
