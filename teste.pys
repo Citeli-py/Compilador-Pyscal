@@ -8,13 +8,15 @@ eu apereço em varias linhas
 asdasdasd
 */
 
+//#
+
 const   TAM == 10; 
         MSG == "digite as notas do aluno"; 
- 
+
 type    vetor = array [15] of integer; 
         aluno = record  
             nota1 : real; 
-            nota2 : real 
+            nota2 : real;
         end; 
 
 var A, B, C, D : integer; 
@@ -26,8 +28,8 @@ begin
     variavel := 20.0;
     variavel := variavel/2.0;
 
-    a := 0.0
-
+    a := 1.0
+    //@
     write MSG; 
     read F.nota1; 
     read F.nota2; 

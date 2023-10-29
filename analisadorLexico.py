@@ -45,7 +45,7 @@ class AnalizadorLexico:
     ] + list(palavras_reservadas.values())
 
 
-    t_NUMERO = r'[0-9]+(.[0-9]*)?'
+    t_NUMERO = r'[0-9]+(\.[0-9]*)?'
     t_STRING = r'\".*\"'
     t_OP_MAT = r'[\+|\-|\*|\/]'
     t_OP_LOGICO = r'[<|>|!|=]' 
