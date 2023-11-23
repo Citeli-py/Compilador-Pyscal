@@ -2,6 +2,8 @@ Tokenlist=list()
 Index=0
 Token=None
 
+DEBUG = False
+
 VERMELHO = "\033[1;31;40m"
 BRANCO = "\033[0m"
 VERDE = "\033[92m"
@@ -29,12 +31,16 @@ def next():
     Token=Tokenlist[0]
     Index += 1
 
-    print(VERDE+"Token atual:", Token, BRANCO)
+    if DEBUG:
+        print(VERDE+"Token atual:", Token, BRANCO)
+
     return tokenAnterior
 
 def confere_tipo(type):
     global Tokenlist, Token
-    print(f"Confere: {Token} com {type}")
+    if DEBUG:
+        print(f"Confere: {Token} com {type}")
+
     if confere_tamanho() and (Token[0] == type): #token = (tipo, valor, linha)
         return True
     return False
@@ -45,7 +51,6 @@ def confere_tamanho():
           return True
      return False
 
-
 def erro(type=None,esperado=None):
     global Token
     if (type==None) and (esperado==None):
@@ -53,22 +58,21 @@ def erro(type=None,esperado=None):
     elif esperado == None:
         print(f'{VERMELHO}Erro ({type}): Na linha {Token[2]}{BRANCO}')
 
-    print(f'{VERMELHO}Erro ({type}): Era esperado "{esperado}" na linha {Token[2]}{BRANCO}')
-
+    print(f'{VERMELHO}Erro ({type}): Era esperado "{esperado}" mas foi recebido "{Token[1]}" na linha {Token[2]}{BRANCO}')
 
 def programa()->tuple:#conferido
     no_0 = declaracoes()
     no_1 = bloco()
     return ('PROGRAMA', (no_0, no_1))
     
-def declaracoes():#conferido
+def declaracoes()->tuple:#conferido
     no_0 = def_const()
     no_1 = def_tipo()
     no_2 = def_var()
     no_3 = def_rot()
     return ('DECLARACOES', (no_0, no_1, no_2, no_3))
     
-def def_const(): #conferido
+def def_const()->tuple: #conferido
     if confere_tipo('CONST'):
         no_0 = next()
         no_1 = constante()
@@ -78,10 +82,12 @@ def def_const(): #conferido
             return ('DEF_CONST', (no_0, no_1, no_2, no_3))
         else:
             erro("DEF_CONST",";")
+            no_3 = list_const()
+            return ('DEF_CONST', (no_0, no_1, None, no_3))
 
     return None
 
-def list_const(): #conferido
+def list_const()->tuple: #conferido
     no_0 = constante()
     if no_0 != None:
         if confere_tipo('PONTOVIRGULA'):
@@ -91,10 +97,12 @@ def list_const(): #conferido
             
         else:
             erro("LIST_CONST",";")
+            no_2 = list_const()
+            return ('LIST_CONST', (no_0, None, no_2))
 
     return None
     
-def constante(): #conferido
+def constante()->tuple: #conferido
     if confere_tipo('ID'): # Erro
         no_0 = next() #ID
         if confere_tipo('IGUALIGUAL'):
@@ -103,15 +111,17 @@ def constante(): #conferido
             return ('CONSTANTE', (no_0, no_1, no_2))
         else:
             erro("CONSTANTE", "==")
+            no_2 = const_valor()
+            return ('CONSTANTE', (no_0, None, no_2))
     #else:
     #    erro("CONSTANTE","ID") 
     
     return None
     
-def const_valor():#??
+def const_valor()->tuple:#??
     if confere_tipo('NUMERO') or confere_tipo('ID'): # EXP_MAT
         no_0 = exp_mat()
-        return ('EXP_MAT', (no_0))
+        return ('CONST_VALOR', (no_0))
     
     elif confere_tipo('STRING'):
         no_0 = next()
@@ -119,6 +129,7 @@ def const_valor():#??
     
     else:
         erro("CONST_VALOR", "STRING | EXP_MAT")
+        return ('CONST_VALOR', (None))
     
     return None   
 
@@ -132,6 +143,8 @@ def def_tipo(): # ver, def tipos pode retornar epslon,ver se e dessa forma(como 
             return ('DEF_TIPO', (no_0, no_1, no_2, no_3))
         else:
             erro("PONTOVIRGULA",";")
+            no_3 = list_tipos()
+            return ('DEF_TIPO', (no_0, no_1, None, no_3))
     #else:
         #erro("TYPE","type")
 
@@ -146,6 +159,8 @@ def list_tipos(): #conferido
             return ('LIST_TIPOS', (no_0, no_1, no_2))
         else: 
             erro('PONTOVIRGULA', ';')
+            no_2 = list_tipos()
+            return ('LIST_TIPOS', (no_0, None, no_2))
     
     return None
 
@@ -158,6 +173,8 @@ def tipo(): #conferido
             return ('TIPO', (no_0, no_1, no_2))
         else:
             erro('IGUALIGUAL','==')
+            no_2 = tipo_dado()
+            return ('TIPO', (no_0, None, no_2))
     #else:
     #    erro('ID','ID')
     
@@ -181,9 +198,10 @@ def tipo_dado():#conferido
         no_1 = campos()
         if confere_tipo('END'):
             no_2 = next()
-            return ('TIPO_DADO', (no_0, no_1, no_2))
+            return ('TIPO_DADO', ('RECORD', (no_0, no_1, no_2)))
         else:
             erro("TIPO_DADO","end")
+            return ('TIPO_DADO', ('RECORD', (no_0, no_1, None)))
 
     elif confere_tipo('ID'):
         no_0 = next()
@@ -191,6 +209,10 @@ def tipo_dado():#conferido
     
     else:
         erro("TIPO_DADO", "integer | real | array | record | ID")
+        # Tipo dado termina com ';', 'VAR' ou 'ID'
+        while not(confere_tipo('VAR') or confere_tipo('PONTOVIRGULA') or confere_tipo("ID")):
+            next()
+
 
     return None
 
@@ -205,15 +227,20 @@ def array(): # função auxiliar começa com next? se outra função chamar sem 
                 if confere_tipo('OF'):
                     no_4 = next()
                     no_5 = tipo_dado()
-                    return ('TIPO_DADO', (no_0, no_1, no_2, no_3, no_4, no_5))
+                    return ('ARRAY', (no_0, no_1, no_2, no_3, no_4, no_5))
                 else:
-                    erro('TIPO_DADO',"of")
+                    erro('ARRAY',"of")
+                    no_5 = tipo_dado()
+                    return ('ARRAY', (no_0, no_1, no_2, no_3, None, no_5))
             else:
-                erro("TIPO_DADO","]")
+                erro("ARRAY","]")
+                return ('ARRAY', (no_0, no_1, no_2, None, None, None))
         else:
-            erro("TIPO_DADO","numero")
+            erro("ARRAY","numero")
+            return ('ARRAY', (no_0, no_1, None, None, None, None))
     else:
-        erro("TIPO_DADO","[")
+        erro("ARRAY","[")
+        return ('ARRAY', (no_0, None, None, None, None, None))
     
     return None
     
@@ -227,8 +254,14 @@ def campos(): #
             return ('CAMPOS', (no_0, no_1, no_2, no_3))
         else:
             erro("DOISPONTOS",":") 
+            no_2 = tipo_dado()
+            no_3 = lista_campos()
+            return ('CAMPOS', (no_0, None, no_2, no_3))
     else:
         erro("CAMPOS","ID")
+        no_2 = tipo_dado()
+        no_3 = lista_campos()
+        return ('CAMPOS', (None, no_1, no_2, no_3))
     
     return None
 
@@ -251,6 +284,8 @@ def def_var(): #conferido
             return ('DEF_VAR', (no_0, no_1, no_2, no_3))
         else:
             erro("DEF_VAR", ";")
+            no_3 = list_var()
+            return ('DEF_VAR', (no_0, no_1, None, no_3))
 
     return None
 
@@ -262,7 +297,9 @@ def list_var(): #conferido
             no_2 = list_var()
             return ('LIST_VAR', (no_0, no_1, no_2))
         else:
-           erro("LIST_VAR", ";")
+            erro("LIST_VAR", ";")
+            no_2 = list_var()
+            return ('LIST_VAR', (no_0, None, no_2))
 
     return None
 
@@ -276,6 +313,8 @@ def variavel(): #conferido
             return ('VARIAVEL', (no_0, no_1, no_2, no_3))
         else:
             erro("VARIAVEL",":")
+            no_3 = tipo_dado()
+            return ('VARIAVEL', (no_0, no_1, None, no_3))
             
     
     return None
@@ -289,6 +328,8 @@ def lista_id(): #conferido
             return ('LISTA_ID', (no_0, no_1, no_2))
         else:
             erro("LISTA_ID", "ID")
+            no_2 = lista_id()
+            return ('LISTA_ID', (no_0, None, no_2))
 
     return None
 
@@ -314,8 +355,12 @@ def nome_rotina(): #conferido
                 return ('NOME_ROTINA', (no_0, no_1, no_2, no_3, no_4))
             else:
                 erro("NOME_ROTINA",":")
+                no_4 = tipo_dado()
+                return ('NOME_ROTINA', (no_0, no_1, no_2, None, no_4))
         else:
             erro("NOME_ROTINA","ID")
+            return ('NOME_ROTINA', (no_0, no_1, no_2, None, None))
+            
             
     elif confere_tipo('PROCEDURE'):
         no_0 =next()
@@ -325,6 +370,8 @@ def nome_rotina(): #conferido
             return ('NOME_ROTINA', (no_0, no_1, no_2))
         else:
             erro("NOME_ROTINA","ID")
+            no_2 = param_rot()
+            return ('NOME_ROTINA', (no_0, None, no_2))
         
 
     return None
@@ -338,6 +385,7 @@ def param_rot(): #conferido
             return ('PARAM_ROT', (no_0, no_1, no_2))
         else:
             erro("PARAM_ROT",")")
+            return ('PARAM_ROT', (no_0, no_1, None))
             
     return None
 
@@ -353,8 +401,12 @@ def bloco(): #conferido
                 return ('BLOCO', (no_0, no_1, no_2, no_3, no_4))
             else:
                 erro("BLOCO","END")
+                return ('BLOCO', (no_0, no_1, no_2, no_3, None))
         else:
             erro("BLOCO",";")
+            no_3 = lista_com()
+            return ('BLOCO', (no_0, no_1, None, no_3, None))
+
 
     elif confere_tipo('DOISPONTOS'):
         no_0 = next()
@@ -373,21 +425,19 @@ def lista_com(): #conferido
             no_1 = next()
             no_2 = lista_com()
             return ('LISTA_COM', (no_0, no_1, no_2))
-        # else:
-        #     erro("LISTA_COM", ";")
+        else:
+            erro("LISTA_COM", ";")
+            no_2 = lista_com()
+            return ('LISTA_COM', (no_0, None, no_2))
 
     return None
 
 def comando(): #não pussi exp_mat, ideal é fazer função atrib
     if confere_tipo('ID'):
-        no_0 = next() #ID
-        no_1 = nome() # nome
-        if confere_tipo('ATRIBUICAO'):
-            no_2 = next()
-            no_3 = exp_mat()
-            return ('COMANDO', (no_0, no_1, no_2))
-        else:
-            erro("COMANDO", ":=")
+        no_0 = next()   # ID
+        no_1 = nome()   # nome
+        no_2 = atrib()  # atrib
+        return ('COMANDO', (no_0, no_1, no_2))
 
     elif confere_tipo('WHILE'):
         no_0 = next()
@@ -398,6 +448,8 @@ def comando(): #não pussi exp_mat, ideal é fazer função atrib
             return ('COMANDO', (no_0, no_1, no_2, no_3))
         else:
             erro("COMANDO","DO")
+            no_3 = bloco()
+            return ('COMANDO', (no_0, no_1, None, no_3))
 
     elif confere_tipo('IF'):
         no_0 = next()
@@ -409,6 +461,9 @@ def comando(): #não pussi exp_mat, ideal é fazer função atrib
             return ('COMANDO', (no_0, no_1, no_2, no_3, no_4))
         else:
             erro("COMANDO","then")
+            no_3 = bloco()
+            no_4 = f_else()
+            return ('COMANDO', (no_0, no_1, None, no_3, no_4))
 
     elif confere_tipo('RETURN'):
         no_0 = next()
@@ -428,6 +483,13 @@ def comando(): #não pussi exp_mat, ideal é fazer função atrib
             return ('COMANDO', (no_0, no_1, no_2))
         else:
             erro("COMANDO","ID")
+            no_2 = nome()
+            return ('COMANDO', (no_0, None, no_2))
+    
+    elif confere_tipo("RETURN"):
+        no_0 = next()
+        no_1 = exp_logica()
+        return ("COMANDO", (no_0, no_1))
     
     elif Token == None: #Caso acabam os tokens
         return None
@@ -438,7 +500,7 @@ def comando(): #não pussi exp_mat, ideal é fazer função atrib
     return None
 
 def atrib():
-    if confere_tipo('PONTOVIRGULA'):
+    if confere_tipo('ATRIBUICAO'):
         no_0=next()
         no_1=exp_mat()
         return("ATRIB",(no_0,no_1))
@@ -453,6 +515,11 @@ def f_else(): #
     return None
 
 def lista_param(): #conferida
+
+    # Situação de função sem parametro
+    if confere_tipo("PARENTESIS_DIR"):
+        return None
+
     no_0 = parametro()
     if no_0 != None:
         if confere_tipo('VIRGULA'):
@@ -497,6 +564,7 @@ def parametro():#
     
     else:
         erro("PARAMETRO", "ID | NUMERO")
+        return ('PARAMETRO', (None))
 
     return None
 
@@ -509,6 +577,8 @@ def nome():##conferida
             return ('NOME', (no_0, no_1, no_2))
         else:
             erro("NOME", "ID")
+            no_2 = nome()
+            return ('NOME', (no_0, None, no_2))
 
     elif confere_tipo('COLCHETE_ESQ'):
         no_0 = next()
@@ -518,6 +588,7 @@ def nome():##conferida
             return ('NOME', (no_0, no_1, no_2))
         else:
             erro("NOME","]")
+            return ('NOME', (no_0, no_1, None))
 
     elif confere_tipo('PARENTESIS_ESQ'):
         no_0 = next()
@@ -527,6 +598,7 @@ def nome():##conferida
             return ('NOME', (no_0, no_1, no_2))
         else:
             erro("NOME",")")
+            return ('NOME', (no_0, no_1, None))
     
     return None
 

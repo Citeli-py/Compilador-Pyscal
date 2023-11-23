@@ -1,0 +1,14 @@
+- Não declarar mais de 1 ID com mesmo nome no mesmo escopo
+- Declaração de Id no escopo antes do uso 
+
+- Só permite atribuição com tipos iguais
+
+- Só posso passar parâmetros para funções
+- Quantidade de parametros na chamada da função deve ser igual a da declaração
+- O tipo dos argumentos passados nas funções deve ser igual ao tipo dos parâmetros
+
+- Só pode usar indice ([]) em variaveis do tipo vetor
+- Só pode acessar indices entre 1 e o valor passado entre [] em variaveis do tipo vetor
+
+- Só pode usar campo (.) em variaveis do tipo registro
+- Só posso acessar campo de registro declarado

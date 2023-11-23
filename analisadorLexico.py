@@ -3,6 +3,8 @@ import ply.lex as lex
 class AnalizadorLexico:
     # TOKEN{ type, value, lineno, lexpos }
     palavras_reservadas = {
+        'return': "RETURN",
+        'while': 'WHILE',
         'if': 'IF',
         'else': 'ELSE',
         'begin': 'BEGIN',
@@ -45,7 +47,7 @@ class AnalizadorLexico:
     ] + list(palavras_reservadas.values())
 
 
-    t_NUMERO = r'[0-9]+(\.[0-9]*)?'
+    t_NUMERO = r'[-]?[0-9]+(\.[0-9]*)?'
     t_STRING = r'\".*\"'
     t_OP_MAT = r'[\+|\-|\*|\/]'
     t_OP_LOGICO = r'[<|>|!|=]' 
