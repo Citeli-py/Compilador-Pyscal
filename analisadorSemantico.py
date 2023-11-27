@@ -24,10 +24,9 @@ class TabelaSimbolos:
     def add(self, simbolo) -> None: #Melhorar isso ai, criar um simbolo em cada função
         # (Nome, Classificação, Tipo, Escopo, Quantidade, Ordem)
         if (simbolo[0], simbolo[3]) not in self.simbolos.keys():
-            if (simbolo[0], "GLOBAL") not in self.simbolos.keys():
-                self.simbolos[(simbolo[0], simbolo[3])] = simbolo
-                printg(simbolo)
-                return True
+            self.simbolos[(simbolo[0], simbolo[3])] = simbolo
+            #printg(simbolo)
+            return True
     
         printv(f"Erro: Já existe o ID {simbolo[0]} em {simbolo[3]}")
         return False
@@ -41,17 +40,26 @@ class TabelaSimbolos:
 
 class AnalisadorSemantico:
 
-    def __init__(self) -> None:
+    def __init__(self, arvore) -> None:
         self.Tabela = TabelaSimbolos()
         self.escopo = "GLOBAL"
+        self.ArvoreSintatica = arvore
 
-    def semantico(self, no): # Separar entre declarações, rotinas e bloco main para lidar com escopo
+    def semantico(self,):
+        declaracoes = self.ArvoreSintatica[1][0]
+        bloco = self.ArvoreSintatica[1][1]
+
+        self.semantico_r(declaracoes)
+        self.escopo = "MAIN"
+        self.semantico_r(bloco)
+
+    def semantico_r(self, no): # Separar entre declarações, rotinas e bloco main para lidar com escopo
         if isinstance(no, tuple):
             for filho in no:
                 if isinstance(filho, tuple):
                     self.escopoAtual(filho)
                     if self.regras(filho):
-                        self.semantico(filho)
+                        self.semantico_r(filho)
     
     def escopoAtual(self, no): # Função pra trocar de escopo
         if no[0] == "DEF_ROT":
@@ -83,22 +91,97 @@ class AnalisadorSemantico:
             if no[1][0][0] == "READ":
                 no_nome = no[1][2]
                 identificador = no[1][1][1]
-                printg(no_nome, self.nome(identificador, no_nome))
+                self.nome(identificador, no_nome)
             
-            elif no[1][0][0] == "ID" and no[1][2] != None: # Atribuição
+            elif no[1][0][0] == "ID": 
 
-                # ('COMANDO', (('ID', 'i', 40), None, ('ATRIB', (('ATRIBUICAO', ':=', 40), ('EXP_MAT', ('PARAMETRO', ('NUMERO', '1', 40)))))))
-                print(no[1])
-                # Termo a esquerda
-                if no[1][1] == None:
-                    tipo_esq = self.Tabela.lookup(no[1][0][1], self.escopo)[2] # Checar se existe na tabela
+                if no[1][2] != None: # Atribuição
 
-                else: # Caso tenha nome
-                    pass
+                    # ('COMANDO', (('ID', 'i', 40), None, ('ATRIB', (('ATRIBUICAO', ':=', 40), ('EXP_MAT', ('PARAMETRO', ('NUMERO', '1', 40)))))))
+                    #print(no[1])
+                    # Termo a esquerda
+                    id_esq = no[1][0][1]
+                    if no[1][1] == None:
+                        simbolo_esq = self.Tabela.lookup(id_esq, self.escopo) # Checar se existe na tabela
+                        if simbolo_esq == None:
+                            printv(f"ERRO: {id_esq} não foi declarado!")
+                            return False
+                        
+                        tipo_esq = simbolo_esq[2]
+                    else: # Caso tenha nome
+                        pass
 
-                no_dir = no[1][2][1][1][1]
-                printv(no_dir)
-                id_dir = no_dir
+                    no_dir = no[1][2][1][1][1]
+                    #print(no_dir)
+                    
+                    tipo_dir = None
+                    if no_dir[1][0] == "NUMERO":
+                        tipo_dir = "INTEGER"
+                        if "." in no_dir[1][1]:
+                            tipo_dir = "REAL"
+                    
+                    else: # Tratar nome
+                        if no_dir[0] == "PARAMETRO": # função
+                            id_dir = no_dir[1][0][1]
+                            simbolo_id = self.Tabela.lookup(id_dir, self.escopo)
+
+                            if simbolo_id == None:
+                                printv(f"ERRO: {id_dir} não foi declarado!")
+                                return False
+                            
+                            if no_dir[1][1] == None:
+                                tipo_dir = simbolo_id[2]
+                            
+                            else: #Nome
+                                no_nome = no_dir[1][1]
+                                tipo_dir = self.nome(id_dir, no_nome)
+                            
+                        
+                        else:
+                            id_dir = no_dir[0][1][0][1]
+
+                            if no_dir[0][1][1] == None: # Sem nome
+                                simbolo_id = self.Tabela.lookup(id_dir, self.escopo)
+
+                                if simbolo_id == None:
+                                    printv(f"ERRO: {id_dir} não foi declarado!")
+                                    return False
+                                
+                                tipo_dir = simbolo_id[2]
+
+                                if simbolo_id[2] == "NUMERO":
+                                    tipo_dir = "INTEGER"
+                        
+                            
+                            else: # Com nome
+                                simbolo_id = self.Tabela.lookup(id_dir, self.escopo)
+
+                                if simbolo_id == None:
+                                    printv(f"ERRO: {id_dir} não foi declarado!")
+                                    return False
+                                
+                                no_nome = no_dir[0][1][1]
+                                tipo_dir = self.nome(id_dir, no_nome)
+                        
+                        if tipo_dir != tipo_esq:
+                                printv(f"ERRO: Tipo de {id_esq}:{tipo_esq} diferente de {id_dir}:{tipo_dir}")
+                                return False
+
+                    
+
+            
+                else: #Chamada de função
+                    id_func = no[1][0][1]
+                    no_nome = no[1][1]
+                    simbolo_func = self.Tabela.lookup(id_func, self.escopo)
+
+                    if simbolo_func == None:
+                        printv(f"ERRO: {no[1]} não foi declarado!")
+                        return False
+                    
+                    if simbolo_func[1] == "FUNCTION":
+                        self.nome(id_func, no_nome)
+
 
 
             return False
@@ -134,7 +217,7 @@ class AnalisadorSemantico:
             simbolo = (no[0][1], "VARIAVEL", var_tipo[0], self.escopo, var_tipo[1], None)
             self.Tabela.add(simbolo)
         
-        else: # Funciona fds
+        else: 
             self.Tabela.add((no[0][1], "VARIAVEL", var_tipo[0], self.escopo, var_tipo[1], None))
 
             lista_id = no[1][1]
@@ -266,7 +349,7 @@ class AnalisadorSemantico:
 
         if num_parametros != len(parametros_id):
             printv(f"ERRO: função {ID} recebeu {num_parametros} parametros mas suporta apenas {len(parametros_id)}")
-            return None
+            return tipo
 
         parametros_declarados = []
 
