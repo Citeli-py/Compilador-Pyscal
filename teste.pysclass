@@ -1,0 +1,33 @@
+ATR TAM, 10
+ATR MSG, "digite as notas do aluno"
+LBL lerDados
+WRT MSG
+RED F
+RED F
+RED E
+RED G
+LBL add
+GPR a
+GPR b
+GPR c
+ADD temp0, a, b
+ATR result, temp0
+RTN result
+LBL fatorial
+GPR a
+RED add
+RED H
+ATR temp1, 1
+ATR i, temp1
+ATR temp2, 1
+ATR result, temp2
+LBL while0
+ATR temp3, i
+ATR temp4, a
+JGT f_if0, temp3, temp4
+MLT temp5, result, i
+ATR result, temp5
+ADD temp6, i, 1
+ATR i, temp6
+ADD temp7, i, 1
+ATR i, temp7

@@ -3,7 +3,6 @@ const TAM == 10;
 
 type vetor == array[15] of integer;
     aluno == record  
-        lista_presenca : array[30] of integer;
         nota1 : real; 
         nota2 : real
     end; 
@@ -12,17 +11,32 @@ type vetor == array[15] of integer;
 var A, B, C, D : integer; 
     E : vetor; 
     F : aluno; 
+    G : array[10] of integer;
+    H : real;
 
 procedure lerDados  
 begin 
     write MSG; 
     read F.nota1; 
     read F.nota2; 
+    read E[3];
+    read G[11];
+end 
+
+function add(a:integer; b:integer; c:real) : integer 
+var result : integer; 
+begin 
+    result := a+b;
+    return result; 
 end 
 
 function fatorial(a:integer) : integer 
-var i,result : integer; 
+var i, result : integer; 
 begin 
+
+    read add(1, 2, 3);
+    read H[1];
+
     i := 1; 
     result:=1; 
     while i < a do 
@@ -32,11 +46,15 @@ begin
     end; 
     return result; 
 end 
- 
+
 
 begin 
-    A:=TAM + 20;
+    A := F.nota1;
+    A :=TAM + 20;
+    E := A;
     B := fatorial(A); 
+    C := fatorial(A, B, C);
+    A := add(A, A, E);
     C := exp(A,B); 
     D := media(E);
     lerDados();

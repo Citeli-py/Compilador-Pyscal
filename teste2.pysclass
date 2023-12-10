@@ -1,0 +1,35 @@
+ATR TAM, 10
+ATR MSG, "Oi, tudo bem?"
+LBL add
+GPR a
+GPR b
+ADD temp0, a, b
+ATR result, temp0
+RTN result
+LBL lerDados
+WRT MSG
+RED A
+RED B
+LBL printInt
+WRT a
+LBL main
+ATR temp1, 1
+ATR A, temp1
+LBL while0
+ATR temp2, A
+ATR temp3, 10
+JGT f_while0, temp2, temp3
+PRM A
+JMP printInt
+GRN temp4
+ADD temp5, A, 1
+ATR A, temp5
+LBL if1
+ATR temp6, A
+ATR temp7, 2
+JNE f_if1, temp6, temp7
+ATR temp8, 20
+ATR A, temp8
+LBL f_if1
+JMP while0
+LBL f_while0

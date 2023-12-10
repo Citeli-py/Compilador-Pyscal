@@ -1,0 +1,37 @@
+const   TAM == 10;
+        MSG == "Oi, tudo bem?";
+
+var A, B, C, D : integer; 
+
+function add(a:integer; b:integer) : integer 
+var result : integer; 
+begin 
+    result := a+b;
+    return result; 
+end 
+
+procedure lerDados  
+begin 
+    write MSG; 
+    read A; 
+    read B; 
+end 
+
+procedure printInt(a: integer)
+begin
+    write a;
+end
+
+begin
+    A:=1;
+    while A < 10 do
+    begin
+        printInt(A);
+        A := A + 1;
+        if A = 2 then
+        begin
+            A := 20;
+        end;
+    end;
+
+end

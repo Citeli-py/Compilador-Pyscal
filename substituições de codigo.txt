@@ -1,0 +1,54 @@
+procedure:
+
+LBL nomeprocedimento
+GPR param1
+GPR param2
+[bloco]
+
+function:
+
+LBL nomefunc
+GPR param1
+GPR param2
+[bloco]
+
+if:
+
+LBL if1
+[exp_logica]
+[bloco]
+LBL else1
+[bloco]
+LBL fim1
+
+d := a+b/c:
+
+ADD t1, a, b
+DIV t2, t1, c
+ATR d, t2
+
+c := func(a, b):
+
+PRM a
+PRM b
+JMP func
+GRN t1
+ATR c, t1
+
+while:
+
+LBL while1
+[exp_logica]
+[bloco]
+JMP while1
+LBL fwhile1
+
+
+2 > 1 
+ATR t1, 2
+ATR t2, 1
+jGT fim, t2, t1
+
+
+
+LBL fim
